@@ -36,7 +36,7 @@ const Comments = ({ tabUrl, user }) => {
       const webpageRef = q1Snapshot.docs[0].ref;
       const q2 = query(
         collection(db, webpageRef.path, "comments"),
-        orderBy("likeCount", "desc"),
+        orderBy("netLikes", "desc"),
         orderBy("timestamp", "desc")
       );
       const q2Snapshot = await getDocs(q2);
@@ -68,8 +68,7 @@ const Comments = ({ tabUrl, user }) => {
       content: commentText,
       likes: [],
       dislikes: [],
-      likeCount: 0,
-      dislikeCount: 0,
+      netLikes: 0,
     });
     setCommentProcessing(false);
     setcommentText("");
@@ -78,41 +77,42 @@ const Comments = ({ tabUrl, user }) => {
   };
 
   //like comments
-  const likeComment = async (ref, likeCount) => {
+  const likeComment = async (ref, netLikes) => {
     await updateDoc(ref, {
       likes: arrayRemove(user.uid),
     });
     await updateDoc(ref, {
       likes: arrayUnion(user.uid),
-      likeCount: likeCount + 1,
+      netLikes: netLikes + 1,
     });
     loadComments();
   };
 
-  const unlikeComment = async (ref, likeCount) => {
+  const unlikeComment = async (ref, netLikes) => {
     await updateDoc(ref, {
       likes: arrayRemove(user.uid),
-      likeCount: likeCount - 1,
+      netLikes: netLikes - 1,
     });
     loadComments();
   };
 
   //dislike comments
-  const dislikeComment = async (ref, dislikeCount) => {
+  const dislikeComment = async (ref, netLikes) => {
     await updateDoc(ref, {
       dislikes: arrayRemove(user.uid),
     });
     await updateDoc(ref, {
+      likes: arrayRemove(user.uid),
       dislikes: arrayUnion(user.uid),
-      dislikeCount: dislikeCount + 1,
+      netLikes: netLikes - 1,
     });
     loadComments();
   };
 
-  const undislikeComment = async (ref, dislikeCount) => {
+  const undislikeComment = async (ref, netLikes) => {
     await updateDoc(ref, {
       dislikes: arrayRemove(user.uid),
-      dislikeCount: dislikeCount - 1,
+      netLikes: netLikes + 1,
     });
     loadComments();
   };
@@ -170,8 +170,8 @@ const Comments = ({ tabUrl, user }) => {
                     <Comment.Action
                       onClick={
                         comment?.likes.filter((x) => x == user.uid).length > 0
-                          ? () => unlikeComment(comment.ref, likeCount)
-                          : () => likeComment(comment.ref, likeCount)
+                          ? () => unlikeComment(comment.ref, comment.netLikes)
+                          : () => likeComment(comment.ref, comment.netLikes)
                       }
                     >
                       Like [{likeCount}]
@@ -180,8 +180,9 @@ const Comments = ({ tabUrl, user }) => {
                       onClick={
                         comment?.dislikes.filter((x) => x == user.uid).length >
                         0
-                          ? () => undislikeComment(comment.ref, dislikeCount)
-                          : () => dislikeComment(comment.ref, dislikeCount)
+                          ? () =>
+                              undislikeComment(comment.ref, comment.netLikes)
+                          : () => dislikeComment(comment.ref, comment.netLikes)
                       }
                     >
                       Dislike [{dislikeCount}]
