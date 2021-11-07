@@ -61,6 +61,7 @@ function Trial() {
           }}
         />
         <input
+          type="password"
           placeholder="Password..."
           onChange={(event) => {
             setRegisterPassword(event.target.value);
@@ -79,6 +80,7 @@ function Trial() {
           }}
         />
         <input
+          type="password"
           placeholder="Password..."
           onChange={(event) => {
             setLoginPassword(event.target.value);

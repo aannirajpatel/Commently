@@ -1,34 +1,207 @@
 /*global chrome*/
+import "semantic-ui-css/semantic.min.css";
+import React, { useState, useEffect } from "react";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  onAuthStateChanged,
+  signOut,
+} from "firebase/auth";
 
-import React, { Component } from "react";
-import logo from "./logo.svg";
-import "./App.css";
-import Trial from "./Trial";
+import { auth, db } from "./firebase-config";
+import {
+  Dropdown,
+  Header,
+  Container,
+  Menu,
+  Input,
+  Form,
+  Checkbox,
+  Button,
+} from "semantic-ui-react";
+import Comments from "./Comments";
 
-class App extends Component {
-  render() {
-    return (
-      <div className="App">
-        <header className="App-header">
-          {this.props.isExt ? (
-            <img
-              src={chrome.runtime.getURL("static/media/logo.svg")}
-              className="App-logo"
-              alt="logo"
-            />
-          ) : (
-            <img src={logo} className="App-logo" alt="logo" />
-          )}
+function App() {
+  const [registerEmail, setRegisterEmail] = useState("");
+  const [registerPassword, setRegisterPassword] = useState("");
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [isLoggedOut, setisLoggedOut] = useState(true);
+  const [showLogin, setshowLogin] = useState(true);
+  const [showSignup, setshowSignup] = useState(false);
+  const [showProfile, setshowProfile] = useState(false);
+  const [showComments, setshowComments] = useState(false);
 
-          <h1 className="App-title">Welcome to React</h1>
-        </header>
-        <p className="App-intro">
-          To get started, edit <code>src/App.js</code> and save to reload.
-        </p>
-        <Trial />
-      </div>
-    );
-  }
+  const suppressPages = () => {
+    setshowLogin(false);
+    setshowProfile(false);
+    setshowSignup(false);
+  };
+
+  const [user, setUser] = useState({});
+
+  onAuthStateChanged(auth, (currentUser) => {
+    setUser(currentUser);
+    setisLoggedOut(!currentUser?.email);
+    if (currentUser?.email) {
+      setshowLogin(false);
+      setshowComments(true);
+    } else {
+      setshowLogin(true);
+      setshowComments(false);
+    }
+  });
+
+  const signup = async () => {
+    try {
+      const user = await createUserWithEmailAndPassword(
+        auth,
+        registerEmail,
+        registerPassword
+      );
+      console.log(user);
+      setshowSignup(false);
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
+
+  const login = async () => {
+    try {
+      const user = await signInWithEmailAndPassword(
+        auth,
+        loginEmail,
+        loginPassword
+      );
+      console.log(user);
+      setshowLogin(false);
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
+
+  const logout = async () => {
+    await signOut(auth);
+  };
+
+  const [tabUrl, settabUrl] = useState("N/A");
+
+  useEffect(() => {
+    try {
+      settabUrl(window.location.href);
+    } catch (e) {
+      console.log("Error: " + JSON.stringify(e));
+    }
+    return () => {};
+  }, []);
+
+  const selectLogin = () => {
+    suppressPages();
+    setshowLogin(true);
+  };
+
+  const selectSignup = () => {
+    suppressPages();
+    setshowSignup(true);
+  };
+
+  const selectProfile = () => {
+    let opened = false;
+    if (showProfile) {
+      opened = true;
+    }
+    suppressPages();
+    opened ? setshowProfile(false) : setshowProfile(true);
+  };
+
+  return (
+    <>
+      <Menu inverted pointing>
+        {isLoggedOut && (
+          <>
+            <Menu.Item onClick={selectLogin}>Login</Menu.Item>
+            <Menu.Item onClick={selectSignup}>Signup</Menu.Item>
+          </>
+        )}
+        {!isLoggedOut && (
+          <>
+            <Menu.Item onClick={selectProfile}>Profile</Menu.Item>
+            <Menu.Item onClick={logout}>Logout</Menu.Item>
+          </>
+        )}
+        <Menu.Item position="right">Commently</Menu.Item>
+      </Menu>
+      <Container>
+        {showLogin && (
+          <>
+            <Header as="h1">Login to Commently!</Header>
+            <Form>
+              <Form.Field>
+                <label>E-mail</label>
+                <input
+                  placeholder="Email"
+                  onChange={(event) => setLoginEmail(event.target.value)}
+                />
+              </Form.Field>
+              <Form.Field>
+                <label>Password</label>
+                <input
+                  placeholder="Password"
+                  type="password"
+                  onChange={(event) => setLoginPassword(event.target.value)}
+                />
+              </Form.Field>
+              <Button primary type="submit" onClick={login}>
+                Submit
+              </Button>
+            </Form>
+          </>
+        )}
+        {showSignup && (
+          <>
+            <Header as="h1">Sign up!</Header>
+            <Form>
+              <Form.Field>
+                <label>E-mail</label>
+                <input
+                  placeholder="Email"
+                  onChange={(event) => setRegisterEmail(event.target.value)}
+                />
+              </Form.Field>
+              <Form.Field>
+                <label>Password</label>
+                <input
+                  placeholder="Password"
+                  type="password"
+                  onChange={(event) => setRegisterPassword(event.target.value)}
+                />
+              </Form.Field>
+              <Form.Field>
+                <Checkbox label="I agree to the Terms and Conditions" />
+              </Form.Field>
+              <Button primary type="submit" onClick={signup}>
+                Submit
+              </Button>
+            </Form>
+          </>
+        )}
+        {showProfile && (
+          <>
+            <p>Logged in as: {user?.email}</p>
+            <Button primary onClick={() => setshowProfile(false)}>
+              Close
+            </Button>
+            <hr />
+          </>
+        )}
+        {showComments && (
+          <>
+            <Comments tabUrl={tabUrl} user={user} />
+          </>
+        )}
+      </Container>
+    </>
+  );
 }
 
 export default App;
