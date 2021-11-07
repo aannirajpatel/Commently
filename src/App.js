@@ -43,7 +43,7 @@ function App() {
 
   const [user, setUser] = useState({});
 
-  onAuthStateChanged(auth, (currentUser) => {
+  onAuthStateChanged(auth, async (currentUser) => {
     setUser(currentUser);
     setisLoggedOut(!currentUser?.email);
     if (currentUser?.email) {
