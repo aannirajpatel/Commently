@@ -1,4 +1,3 @@
-/*global chrome*/
 import "semantic-ui-css/semantic.min.css";
 import React, { useState, useEffect } from "react";
 import {
@@ -10,11 +9,9 @@ import {
 import { auth, db } from "./firebase-config";
 import { doc, getDoc, setDoc } from "@firebase/firestore";
 import {
-  Dropdown,
   Header,
   Container,
   Menu,
-  Input,
   Form,
   Checkbox,
   Button,
@@ -46,16 +43,11 @@ function App() {
 
   onAuthStateChanged(auth, async (currentUser) => {
     setUser(currentUser);
-    setisLoggedOut(!currentUser?.email);
+
     if (currentUser?.email) {
-      const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-      console.log("UserDoc has: " + userDoc.data());
-      setUsername(userDoc.data()?.username);
-      setprofileUsername(username);
       setshowLogin(false);
       setshowComments(true);
     } else {
-      setshowLogin(true);
       setshowComments(false);
     }
   });
@@ -111,6 +103,24 @@ function App() {
     return () => {};
   }, []);
 
+  useEffect(() => {
+    try {
+      if (user?.uid) {
+        getDoc(doc(db, "users", user.uid)).then((userDoc) => {
+          if (userDoc.exists && userDoc.data()?.username)
+            setUsername(userDoc.data()?.username);
+          setprofileUsername(username);
+        });
+        setisLoggedOut(false);
+      } else {
+        setisLoggedOut(true);
+        showLogin(true);
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  }, [user]);
+
   const selectLogin = () => {
     suppressPages();
     setshowLogin(true);
@@ -141,10 +151,6 @@ function App() {
     setUsername(profileUsername);
   };
 
-  const handleGetImage = (url) => {
-    console.log(url);
-  };
-
   return (
     <>
       <Menu inverted pointing>
@@ -164,7 +170,7 @@ function App() {
       </Menu>
       <Container>
         {showLogin && (
-          <>
+          <div>
             <Header as="h1">Login to Commently!</Header>
             <Form>
               <Form.Field>
@@ -186,10 +192,11 @@ function App() {
                 Submit
               </Button>
             </Form>
-          </>
+          </div>
         )}
+
         {showSignup && (
-          <>
+          <div>
             <Header as="h1">Sign up!</Header>
             <Form>
               <Form.Field>
@@ -221,13 +228,14 @@ function App() {
                 Submit
               </Button>
             </Form>
-          </>
+          </div>
         )}
+
         {showProfile && (
-          <>
+          <div>
             <Header as="h1">Your Profile</Header>
+            <Avatar uid={user?.uid} />
             <Form>
-              <Avatar uid={user?.uid} />
               <Form.Field>
                 <label>Username</label>
                 <input
@@ -247,12 +255,13 @@ function App() {
               Close
             </Button>
             <hr />
-          </>
+          </div>
         )}
+
         {showComments && (
-          <>
+          <div>
             <Comments tabUrl={tabUrl} user={user} />
-          </>
+          </div>
         )}
       </Container>
     </>

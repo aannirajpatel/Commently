@@ -4,12 +4,13 @@ import { doc, getDoc } from "firebase/firestore";
 import { db } from "./firebase-config";
 const Author = ({ uid }) => {
   const [username, setUsername] = useState("Anonymous");
-  useEffect(async () => {
-    const userDoc = await getDoc(doc(db, "users", uid));
-    if (userDoc.exists && userDoc.data()?.username)
-      setUsername(userDoc.data().username);
+  useEffect(() => {
+    getDoc(doc(db, "users", uid)).then((userDoc) => {
+      if (userDoc.exists && userDoc.data()?.username)
+        setUsername(userDoc.data().username);
+    });
     return () => {};
-  }, []);
+  }, [uid]);
   return <>{username}</>;
 };
 

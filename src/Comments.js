@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 
 import { Comment, Loader, Header, Form, Button, Icon } from "semantic-ui-react";
 
@@ -17,7 +17,6 @@ import {
   arrayUnion,
   arrayRemove,
   updateDoc,
-  getDoc,
 } from "firebase/firestore";
 
 import { db } from "./firebase-config";
@@ -173,7 +172,7 @@ const Comments = ({ tabUrl, user }) => {
                   <Comment.Actions>
                     <Comment.Action
                       onClick={
-                        comment?.likes.filter((x) => x == user.uid).length > 0
+                        comment?.likes.filter((x) => x === user?.uid).length > 0
                           ? () => unlikeComment(comment.ref, comment.netLikes)
                           : () => likeComment(comment.ref, comment.netLikes)
                       }
@@ -182,8 +181,8 @@ const Comments = ({ tabUrl, user }) => {
                     </Comment.Action>
                     <Comment.Action
                       onClick={
-                        comment?.dislikes.filter((x) => x == user.uid).length >
-                        0
+                        comment?.dislikes.filter((x) => x === user?.uid)
+                          .length > 0
                           ? () =>
                               undislikeComment(comment.ref, comment.netLikes)
                           : () => dislikeComment(comment.ref, comment.netLikes)
