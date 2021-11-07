@@ -63,6 +63,8 @@ function App() {
         doc(db, "users", user?.user?.uid),
         {
           username: registerUsername,
+          imageUrl:
+            "https://react.semantic-ui.com/images/avatar/small/matt.jpg",
         },
         { merge: true }
       );

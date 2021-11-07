@@ -23,6 +23,7 @@ import { db } from "./firebase-config";
 import Moment from "react-moment";
 
 import Author from "./Author";
+import CommentAvatar from "./CommentAvatar";
 
 const Comments = ({ tabUrl, user }) => {
   const [commentText, setcommentText] = useState("");
@@ -158,7 +159,7 @@ const Comments = ({ tabUrl, user }) => {
             const dislikeCount = comment?.dislikes?.length || 0;
             return (
               <Comment key={comment.id}>
-                <Comment.Avatar src="https://react.semantic-ui.com/images/avatar/small/matt.jpg" />
+                <CommentAvatar uid={comment.uid} />
                 <Comment.Content>
                   <Comment.Author as="a">
                     <Author uid={comment.uid} />
