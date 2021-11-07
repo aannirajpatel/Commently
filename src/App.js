@@ -9,7 +9,7 @@ import {
 } from "firebase/auth";
 
 import { auth, db } from "./firebase-config";
-import { doc, setDoc } from "@firebase/firestore";
+import { doc, getDoc, setDoc } from "@firebase/firestore";
 import {
   Dropdown,
   Header,
@@ -47,6 +47,8 @@ function App() {
     setUser(currentUser);
     setisLoggedOut(!currentUser?.email);
     if (currentUser?.email) {
+      const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+      setUser({ ...user, username: userDoc.data().username });
       setshowLogin(false);
       setshowComments(true);
     } else {
