@@ -9,7 +9,7 @@ import {
 } from "firebase/auth";
 
 import { auth, db } from "./firebase-config";
-import { doc, setDoc } from "@firebase/firestore";
+import { doc, getDoc, setDoc } from "@firebase/firestore";
 import {
   Dropdown,
   Header,
@@ -34,6 +34,7 @@ function App() {
   const [showSignup, setshowSignup] = useState(false);
   const [showProfile, setshowProfile] = useState(false);
   const [showComments, setshowComments] = useState(false);
+  const [username, setUsername] = useState("");
 
   const suppressPages = () => {
     setshowLogin(false);
@@ -43,10 +44,13 @@ function App() {
 
   const [user, setUser] = useState({});
 
-  onAuthStateChanged(auth, (currentUser) => {
+  onAuthStateChanged(auth, async (currentUser) => {
     setUser(currentUser);
     setisLoggedOut(!currentUser?.email);
     if (currentUser?.email) {
+      const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+      console.log("UserDoc has: " + userDoc.data());
+      setUsername(userDoc.data()?.username);
       setshowLogin(false);
       setshowComments(true);
     } else {
@@ -92,6 +96,7 @@ function App() {
 
   const logout = async () => {
     await signOut(auth);
+    setshowProfile(false);
   };
 
   const [tabUrl, settabUrl] = useState("N/A");
@@ -132,6 +137,7 @@ function App() {
       },
       { merge: true }
     );
+    setUsername(profileUsername);
   };
 
   return (
@@ -226,7 +232,10 @@ function App() {
                 Update Profile
               </Button>
             </Form>
-            <p>Logged in as {user?.email} </p>
+            <br />
+            <p>
+              Logged in as {username} via {user?.email}
+            </p>
             <Button red onClick={() => setshowProfile(false)}>
               Close
             </Button>

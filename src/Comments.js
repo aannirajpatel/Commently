@@ -149,7 +149,6 @@ const Comments = ({ tabUrl, user }) => {
         <ToastContainer />
         {comments
           .map((comment) => {
-            console.log(comment);
             return { ...comment.data(), id: comment.id, ref: comment.ref };
           })
           .map((comment) => {
