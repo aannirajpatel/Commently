@@ -7,7 +7,6 @@ import {
   onAuthStateChanged,
   signOut,
 } from "firebase/auth";
-
 import { auth, db } from "./firebase-config";
 import { doc, getDoc, setDoc } from "@firebase/firestore";
 import {
@@ -21,6 +20,7 @@ import {
   Button,
 } from "semantic-ui-react";
 import Comments from "./Comments";
+import Avatar from "./Avatar";
 
 function App() {
   const [registerEmail, setRegisterEmail] = useState("");
@@ -51,6 +51,7 @@ function App() {
       const userDoc = await getDoc(doc(db, "users", currentUser.uid));
       console.log("UserDoc has: " + userDoc.data());
       setUsername(userDoc.data()?.username);
+      setprofileUsername(username);
       setshowLogin(false);
       setshowComments(true);
     } else {
@@ -140,6 +141,10 @@ function App() {
     setUsername(profileUsername);
   };
 
+  const handleGetImage = (url) => {
+    console.log(url);
+  };
+
   return (
     <>
       <Menu inverted pointing>
@@ -220,7 +225,9 @@ function App() {
         )}
         {showProfile && (
           <>
+            <Header as="h1">Your Profile</Header>
             <Form>
+              <Avatar uid={user?.uid} />
               <Form.Field>
                 <label>Username</label>
                 <input

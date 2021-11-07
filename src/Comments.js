@@ -17,10 +17,13 @@ import {
   arrayUnion,
   arrayRemove,
   updateDoc,
+  getDoc,
 } from "firebase/firestore";
 
 import { db } from "./firebase-config";
 import Moment from "react-moment";
+
+import Author from "./Author";
 
 const Comments = ({ tabUrl, user }) => {
   const [commentText, setcommentText] = useState("");
@@ -63,7 +66,6 @@ const Comments = ({ tabUrl, user }) => {
 
     await setDoc(doc(collection(db, webpageRef.path, "comments")), {
       uid: user.uid,
-      username: user.email,
       timestamp: serverTimestamp(),
       content: commentText,
       likes: [],
@@ -82,6 +84,7 @@ const Comments = ({ tabUrl, user }) => {
       likes: arrayRemove(user.uid),
     });
     await updateDoc(ref, {
+      dislikes: arrayRemove(user.uid),
       likes: arrayUnion(user.uid),
       netLikes: netLikes + 1,
     });
@@ -158,7 +161,9 @@ const Comments = ({ tabUrl, user }) => {
               <Comment key={comment.id}>
                 <Comment.Avatar src="https://react.semantic-ui.com/images/avatar/small/matt.jpg" />
                 <Comment.Content>
-                  <Comment.Author as="a">{comment?.username}</Comment.Author>
+                  <Comment.Author as="a">
+                    <Author uid={comment.uid} />
+                  </Comment.Author>
                   <Comment.Metadata>
                     <div>
                       <Moment fromNow>{comment?.timestamp.toDate()}</Moment>
