@@ -67,7 +67,9 @@ const Comments = ({ tabUrl, user }) => {
       timestamp: serverTimestamp(),
       content: commentText,
       likes: [],
+      dislikes: [],
       likeCount: 0,
+      dislikeCount: 0,
     });
     setCommentProcessing(false);
     setcommentText("");
@@ -75,6 +77,7 @@ const Comments = ({ tabUrl, user }) => {
     loadComments();
   };
 
+  //like comments
   const likeComment = async (ref, likeCount) => {
     await updateDoc(ref, {
       likes: arrayRemove(user.uid),
@@ -90,6 +93,26 @@ const Comments = ({ tabUrl, user }) => {
     await updateDoc(ref, {
       likes: arrayRemove(user.uid),
       likeCount: likeCount - 1,
+    });
+    loadComments();
+  };
+
+  //dislike comments
+  const dislikeComment = async (ref, dislikeCount) => {
+    await updateDoc(ref, {
+      dislikes: arrayRemove(user.uid),
+    });
+    await updateDoc(ref, {
+      dislikes: arrayUnion(user.uid),
+      dislikeCount: dislikeCount + 1,
+    });
+    loadComments();
+  };
+
+  const undislikeComment = async (ref, dislikeCount) => {
+    await updateDoc(ref, {
+      dislikes: arrayRemove(user.uid),
+      dislikeCount: dislikeCount - 1,
     });
     loadComments();
   };
@@ -131,6 +154,7 @@ const Comments = ({ tabUrl, user }) => {
           })
           .map((comment) => {
             const likeCount = comment?.likes?.length || 0;
+            const dislikeCount = comment?.dislikes?.length || 0;
             return (
               <Comment key={comment.id}>
                 <Comment.Avatar src="https://react.semantic-ui.com/images/avatar/small/matt.jpg" />
@@ -152,6 +176,17 @@ const Comments = ({ tabUrl, user }) => {
                     >
                       Like [{likeCount}]
                     </Comment.Action>
+                    <Comment.Action
+                      onClick={
+                        comment?.dislikes.filter((x) => x == user.uid).length >
+                        0
+                          ? () => undislikeComment(comment.ref, dislikeCount)
+                          : () => dislikeComment(comment.ref, dislikeCount)
+                      }
+                    >
+                      Dislike [{dislikeCount}]
+                    </Comment.Action>
+                    <Comment.Action>Reply</Comment.Action>
                   </Comment.Actions>
                 </Comment.Content>
               </Comment>

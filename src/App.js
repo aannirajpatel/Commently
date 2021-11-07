@@ -9,6 +9,7 @@ import {
 } from "firebase/auth";
 
 import { auth, db } from "./firebase-config";
+import { doc, setDoc } from "@firebase/firestore";
 import {
   Dropdown,
   Header,
@@ -24,8 +25,10 @@ import Comments from "./Comments";
 function App() {
   const [registerEmail, setRegisterEmail] = useState("");
   const [registerPassword, setRegisterPassword] = useState("");
+  const [registerUsername, setregisterUsername] = useState("");
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
+  const [profileUsername, setprofileUsername] = useState("");
   const [isLoggedOut, setisLoggedOut] = useState(true);
   const [showLogin, setshowLogin] = useState(true);
   const [showSignup, setshowSignup] = useState(false);
@@ -58,6 +61,13 @@ function App() {
         auth,
         registerEmail,
         registerPassword
+      );
+      await setDoc(
+        doc(db, "users", user?.user?.uid),
+        {
+          username: registerUsername,
+        },
+        { merge: true }
       );
       console.log(user);
       setshowSignup(false);
@@ -114,6 +124,16 @@ function App() {
     opened ? setshowProfile(false) : setshowProfile(true);
   };
 
+  const updateProfile = async () => {
+    await setDoc(
+      doc(db, "users", user?.uid),
+      {
+        username: profileUsername,
+      },
+      { merge: true }
+    );
+  };
+
   return (
     <>
       <Menu inverted pointing>
@@ -162,6 +182,13 @@ function App() {
             <Header as="h1">Sign up!</Header>
             <Form>
               <Form.Field>
+                <label>Username</label>
+                <input
+                  placeholder="Need not be unique"
+                  onChange={(event) => setregisterUsername(event.target.value)}
+                />
+              </Form.Field>
+              <Form.Field>
                 <label>E-mail</label>
                 <input
                   placeholder="Email"
@@ -171,7 +198,7 @@ function App() {
               <Form.Field>
                 <label>Password</label>
                 <input
-                  placeholder="Password"
+                  placeholder="Keep it secret :)"
                   type="password"
                   onChange={(event) => setRegisterPassword(event.target.value)}
                 />
@@ -187,8 +214,20 @@ function App() {
         )}
         {showProfile && (
           <>
-            <p>Logged in as: {user?.email}</p>
-            <Button primary onClick={() => setshowProfile(false)}>
+            <Form>
+              <Form.Field>
+                <label>Username</label>
+                <input
+                  placeholder="Need not be unique"
+                  onChange={(event) => setprofileUsername(event.target.value)}
+                />
+              </Form.Field>
+              <Button primary type="submit" onClick={updateProfile}>
+                Update Profile
+              </Button>
+            </Form>
+            <p>Logged in as {user?.email} </p>
+            <Button red onClick={() => setshowProfile(false)}>
               Close
             </Button>
             <hr />
