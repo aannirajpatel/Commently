@@ -1,19 +1,9 @@
 import React, { useRef, useState, useEffect } from "react";
 
-import {
-  Comment,
-  Loader,
-  Header,
-  Form,
-  Button,
-  Icon,
-  CommentText,
-} from "semantic-ui-react";
+import { Comment, Loader, Header, Form, Button, Icon } from "semantic-ui-react";
 
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
-import { parser } from "html-metadata-parser";
 
 import {
   collection,
@@ -24,6 +14,9 @@ import {
   setDoc,
   serverTimestamp,
   orderBy,
+  arrayUnion,
+  arrayRemove,
+  updateDoc,
 } from "firebase/firestore";
 
 import { db } from "./firebase-config";
@@ -43,11 +36,11 @@ const Comments = ({ tabUrl, user }) => {
       const webpageRef = q1Snapshot.docs[0].ref;
       const q2 = query(
         collection(db, webpageRef.path, "comments"),
+        orderBy("likeCount", "desc"),
         orderBy("timestamp", "desc")
       );
       const q2Snapshot = await getDocs(q2);
       setComments(q2Snapshot.docs);
-      console.log(q2Snapshot.docs);
     }
   };
 
@@ -73,6 +66,8 @@ const Comments = ({ tabUrl, user }) => {
       username: user.email,
       timestamp: serverTimestamp(),
       content: commentText,
+      likes: [],
+      likeCount: 0,
     });
     setCommentProcessing(false);
     setcommentText("");
@@ -80,11 +75,27 @@ const Comments = ({ tabUrl, user }) => {
     loadComments();
   };
 
+  const likeComment = async (ref) => {
+    await updateDoc(ref, {
+      likes: arrayRemove(user.uid),
+    });
+    await updateDoc(ref, {
+      likes: arrayUnion(user.uid),
+      likeCount: likeCount + 1,
+    });
+    loadComments();
+  };
+
+  const unlikeComment = async (ref, likeCount) => {
+    await updateDoc(ref, {
+      likes: arrayRemove(user.uid),
+      likeCount: likeCount - 1,
+    });
+    loadComments();
+  };
+
   useEffect(() => {
     loadComments();
-    parser("https://www.youtube.com/watch?v=eSzNNYk7nVU").then((result) => {
-      console.log(JSON.stringify(result, null, 3));
-    });
     return () => {};
   }, []);
 
@@ -115,9 +126,11 @@ const Comments = ({ tabUrl, user }) => {
         <ToastContainer />
         {comments
           .map((comment) => {
-            return { ...comment.data(), id: comment.id };
+            console.log(comment);
+            return { ...comment.data(), id: comment.id, ref: comment.ref };
           })
           .map((comment) => {
+            const likeCount = comment?.likes?.length || 0;
             return (
               <Comment key={comment.id}>
                 <Comment.Avatar src="https://react.semantic-ui.com/images/avatar/small/matt.jpg" />
@@ -130,7 +143,15 @@ const Comments = ({ tabUrl, user }) => {
                   </Comment.Metadata>
                   <Comment.Text>{comment?.content}</Comment.Text>
                   <Comment.Actions>
-                    <Comment.Action>Reply</Comment.Action>
+                    <Comment.Action
+                      onClick={
+                        comment?.likes.filter((x) => x == user.uid).length > 0
+                          ? () => unlikeComment(comment.ref, likeCount)
+                          : () => likeComment(comment.ref, likeCount)
+                      }
+                    >
+                      Like [{likeCount}]
+                    </Comment.Action>
                   </Comment.Actions>
                 </Comment.Content>
               </Comment>
