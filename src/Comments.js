@@ -75,7 +75,7 @@ const Comments = ({ tabUrl, user }) => {
     loadComments();
   };
 
-  const likeComment = async (ref) => {
+  const likeComment = async (ref, likeCount) => {
     await updateDoc(ref, {
       likes: arrayRemove(user.uid),
     });
