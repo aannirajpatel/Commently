@@ -1,3 +1,4 @@
+Reproducing the license for code used from https://github.com/satendra02/react-chrome-extension
 MIT License
 
 Copyright (c) 2018 Satendra Rai
