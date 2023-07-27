@@ -2,7 +2,7 @@
 
 Commently is a Chrome extension that allows you to comment and have discussions over any webpage on the internet.
 
-**Note**: This extension might not work out of the box and may need several updates and/or fixes (last commit was about 2 years ago). However, a web app is currently in the works to translate this idea into a more accessible platform.
+**Note**: This extension might not work out of the box and may need several updates and/or fixes (the last commit before this information update was about 2 years ago). However, a web app is currently in the works to translate this idea into a more accessible platform. The source code for the same can be found here: [Web App](https://github.com/aannirajpatel/commently-web-app), [Backend](https://github.com/aannirajpatel/commently-backend).
 
 How to use:
 
